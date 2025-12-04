@@ -50,7 +50,7 @@ export function yuanToCents(yuan: number): number {
  */
 export function formatDateToISO(date: Date | string): string {
   const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  return format(dateObj, 'yyyy-MM-DD');
+  return format(dateObj, 'yyyy-MM-dd');
 }
 
 /**

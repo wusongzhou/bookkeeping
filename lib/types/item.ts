@@ -43,6 +43,8 @@ export interface UpdateItemDTO {
   price_cents?: number;               // 购买价格（分）
   remark?: string;                    // 备注
   archived?: number;                  // 归档状态
+  archived_at?: string | null;        // 归档时间
+  archived_daily_price_cents?: number | null; // 归档日均价格
 }
 
 /**

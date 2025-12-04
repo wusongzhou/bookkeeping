@@ -1,36 +1,136 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 个人物品成本管理系统
 
-## Getting Started
+一个用于记录和管理个人物品使用成本的 Web 应用。
 
-First, run the development server:
+## 功能特性
+
+- ✅ 物品信息管理（名称、购买日期、价格、备注）
+- ✅ 自动计算使用天数和日均成本
+- ✅ 物品归档/退役功能（锁定最终成本）
+- ✅ 筛选和搜索功能
+- ✅ 云端 SQLite 数据库存储
+- ✅ 用户认证（单用户模式）
+- ✅ 数据持久化（刷新不丢失）
+- 🚧 数据统计报表（待开发）
+- 🚧 分类/标签功能（待开发）
+
+## 技术栈
+
+### 前端
+- **框架**: Next.js 16 + React 19
+- **状态管理**: Zustand
+- **样式**: Tailwind CSS 4
+- **类型检查**: TypeScript
+- **日期处理**: date-fns
+
+### 后端
+- **运行环境**: Node.js
+- **API 框架**: Next.js API Routes
+- **数据库**: SQLite (better-sqlite3)
+- **认证**: JWT Token
+
+## 快速开始
+
+### 安装依赖
+
+```bash
+npm install
+```
+
+### 开发模式
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+访问 http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**默认登录账号**：
+- 用户名：`admin`
+- 密码：`admin123`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 生产构建
 
-## Learn More
+```bash
+npm run build
+npm run start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 项目结构
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+.
+├── app/              # Next.js 应用目录
+│   ├── api/           # API 路由
+│   │   ├── auth/      # 认证 API
+│   │   └── items/     # 物品 CRUD API
+│   ├── globals.css   # 全局样式
+│   ├── layout.tsx    # 布局组件
+│   └── page.tsx      # 主页面
+├── components/       # React 组件
+│   ├── item-card.tsx    # 物品卡片
+│   ├── item-list.tsx    # 物品列表
+│   ├── item-form.tsx    # 物品表单
+│   ├── item-detail.tsx  # 物品详情
+│   └── login-modal.tsx  # 登录弹窗
+├── lib/              # 工具库
+│   ├── api/           # API 客户端
+│   ├── auth/          # 认证工具
+│   ├── db/            # 数据库操作
+│   ├── types/         # 类型定义
+│   ├── utils/         # 工具函数
+│   ├── store/         # Zustand 状态管理
+│   └── hooks/         # React Hooks
+├── data/             # 数据库文件（.gitignore）
+└── 需求说明.md       # 项目需求文档
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 数据模型
 
-## Deploy on Vercel
+### Item (物品)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | number | 主键，自增 |
+| user_id | string | 用户 ID（单用户模式为固定值） |
+| name | string | 物品名称 |
+| purchased_at | string | 购买日期 |
+| price_cents | number | 购买价格（分） |
+| remark | string | 备注 |
+| archived | number | 是否归档（0/1） |
+| archived_at | string | 归档时间 |
+| archived_daily_price_cents | number | 归档日均价格 |
+| created_at | string | 创建时间 |
+| updated_at | string | 更新时间 |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 开发阶段
+
+### ✅ 阶段一：Web 端 MVP
+
+- [x] 基础 UI 组件
+- [x] 物品列表展示
+- [x] 新建/编辑物品
+- [x] 物品详情查看
+- [x] 归档功能
+- [x] 筛选和搜索
+- [x] 前端状态管理
+
+### ✅ 阶段二：云端 API 与数据库
+
+- [x] SQLite 数据库设计与初始化
+- [x] JWT 用户认证（单用户模式）
+- [x] Items CRUD API 实现
+- [x] 前端 API 集成
+- [x] 数据持久化
+
+### 🚧 阶段三：优化与扩展
+
+- [ ] 数据统计报表
+- [ ] 分类/标签功能
+- [ ] 数据导入/导出
+- [ ] 性能优化
+- [ ] 部署到生产环境
+
+## 许可证
+
+私人项目，仅供个人使用。

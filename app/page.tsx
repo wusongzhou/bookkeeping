@@ -1,65 +1,274 @@
-import Image from "next/image";
+/**
+ * 主页面
+ * 物品成本管理系统
+ */
+
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useItemStore } from '@/lib/store/item-store';
+import { useItems } from '@/lib/hooks/use-items';
+import { useTags } from '@/lib/hooks/use-tags';
+import { ItemList } from '@/components/item-list';
+import { ItemForm } from '@/components/item-form';
+import { ItemDetail } from '@/components/item-detail';
+import { LoginModal, useAuth } from '@/components/login-modal';
+import { UserSettings } from '@/components/user-settings';
+import { Button } from '@/components/ui/button';
+import type { CreateItemDTO, UpdateItemDTO } from '@/lib/types';
 
 export default function Home() {
+  const { isAuthenticated, isChecking, logout, setIsAuthenticated } = useAuth();
+  const itemsApi = useItems();
+  const tagsApi = useTags();
+  const {
+    items,
+    setItems,
+    addItem,
+    updateItem,
+    removeItem,
+    isFormOpen,
+    editingItem,
+    openForm,
+    closeForm,
+    selectedItem,
+    openDetail,
+    closeDetail,
+    getFilteredItems,
+    setFilter,
+  } = useItemStore();
+
+  const [loading, setLoading] = useState(false);
+  const [editingItemTagIds, setEditingItemTagIds] = useState<number[]>([]);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const filteredItems = getFilteredItems();
+
+  // 初始化：加载数据（仅在认证成功后执行）
+  useEffect(() => {
+    // 只有在认证通过且不在检查状态时才加载数据
+    if (!isAuthenticated || isChecking) {
+      return;
+    }
+
+    const loadItems = async () => {
+      setLoading(true);
+      try {
+        const data = await itemsApi.getAllItems();
+        setItems(data);
+      } catch (error) {
+        console.error('加载数据失败:', error);
+        // 如果是认证错误，重置认证状态
+        if (error instanceof Error && error.message.includes('认证')) {
+          setIsAuthenticated(false);
+        } else {
+          alert('加载数据失败，请重试');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, isChecking]); // 依赖认证状态
+
+  // 创建或更新物品
+  const handleSubmit = async (data: CreateItemDTO, tagIds: number[]) => {
+    try {
+      if (editingItem) {
+        // 更新
+        const updated = await itemsApi.updateItem(editingItem.id, data as UpdateItemDTO);
+        // 更新标签
+        await tagsApi.setItemTags(editingItem.id, tagIds);
+        updateItem(editingItem.id, updated);
+      } else {
+        // 创建
+        const created = await itemsApi.createItem(data);
+        // 设置标签
+        if (tagIds.length > 0) {
+          await tagsApi.setItemTags(created.id, tagIds);
+        }
+        addItem(created);
+      }
+      closeForm();
+    } catch (error) {
+      console.error('保存失败:', error);
+      throw error;
+    }
+  };
+
+  // 归档物品
+  const handleArchive = async () => {
+    if (!selectedItem) return;
+    try {
+      const archived = await itemsApi.archiveItem(selectedItem.id);
+      updateItem(selectedItem.id, archived);
+      closeDetail();
+    } catch (error) {
+      console.error('归档失败:', error);
+      alert('归档失败，请重试');
+    }
+  };
+
+  // 取消归档
+  const handleUnarchive = async () => {
+    if (!selectedItem) return;
+    try {
+      const unarchived = await itemsApi.unarchiveItem(selectedItem.id);
+      updateItem(selectedItem.id, unarchived);
+      closeDetail();
+    } catch (error) {
+      console.error('取消归档失败:', error);
+      alert('取消归档失败，请重试');
+    }
+  };
+
+  // 删除物品
+  const handleDelete = async () => {
+    if (!selectedItem) return;
+    try {
+      await itemsApi.deleteItem(selectedItem.id);
+      removeItem(selectedItem.id);
+      closeDetail();
+    } catch (error) {
+      console.error('删除失败:', error);
+      alert('删除失败，请重试');
+    }
+  };
+
+  // 编辑物品
+  const handleEdit = async () => {
+    if (selectedItem) {
+      // 加载物品的标签
+      try {
+        const tags = await tagsApi.getItemTags(selectedItem.id);
+        setEditingItemTagIds(tags.map(t => t.id));
+      } catch (error) {
+        console.error('加载物品标签失败:', error);
+        setEditingItemTagIds([]);
+      }
+      closeDetail();
+      openForm(selectedItem);
+    }
+  };
+
+  if (isChecking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#F7F6F3] dark:bg-[#191919]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-3 border-[#2383E2] dark:border-[#529CCA] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-[#787774] dark:text-[#9B9A97] text-base">加载中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginModal onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#F7F6F3] dark:bg-[#191919]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-3 border-[#2383E2] dark:border-[#529CCA] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-[#787774] dark:text-[#9B9A97] text-base">加载中...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="min-h-screen bg-[#F7F6F3] dark:bg-[#191919]">
+      <div className="max-w-5xl mx-auto px-8 py-12">
+        {/* 顶部标题栏 - Notion 风格 */}
+        <div className="mb-10 pb-8 border-b border-[#E9E9E7] dark:border-[#3F3F3F]">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h1 className="text-4xl font-semibold text-[#37352F] dark:text-[#E6E6E6] mb-2">
+                物品成本管理
+              </h1>
+              <p className="text-[#787774] dark:text-[#9B9A97] text-sm">
+                记录每一件物品的使用成本，让花费更有意义
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setSettingsOpen(true)}
+                variant="ghost"
+                size="sm"
+                className="text-[#787774] hover:bg-[#F1F1EF] dark:hover:bg-[#373737]"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                设置
+              </Button>
+              <Button
+                onClick={logout}
+                variant="ghost"
+                size="sm"
+                className="text-[#787774] hover:bg-[#F1F1EF] dark:hover:bg-[#373737]"
+              >
+                退出登录
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* 新建按钮 - Notion 风格 */}
+        <div className="mb-6">
+          <Button
+            onClick={() => openForm()}
+            size="lg"
+            className="bg-[#2383E2] hover:bg-[#1a73d1] dark:bg-[#529CCA] dark:hover:bg-[#4a8ab8] text-white shadow-sm"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            新建物品
+          </Button>
+        </div>
+
+        {/* 物品列表 */}
+        <ItemList
+          items={filteredItems}
+          onItemClick={openDetail}
+          onFilterChange={setFilter}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
+
+      {/* 表单弹窗 */}
+      {isFormOpen && (
+        <ItemForm
+          item={editingItem}
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setEditingItemTagIds([]);
+            closeForm();
+          }}
+          initialTagIds={editingItem ? editingItemTagIds : []}
+        />
+      )}
+
+      {/* 详情弹窗 */}
+      {selectedItem && (
+        <ItemDetail
+          item={selectedItem}
+          onEdit={handleEdit}
+          onArchive={handleArchive}
+          onUnarchive={handleUnarchive}
+          onDelete={handleDelete}
+          onClose={closeDetail}
+        />
+      )}
+
+      {/* 设置弹窗 */}
+      <UserSettings
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
     </div>
   );
 }
