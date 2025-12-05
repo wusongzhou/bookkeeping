@@ -3,14 +3,18 @@
  * 展示物品详细信息和操作按钮
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import type { Item, Tag } from '@/lib/types';
-import { centsToYuan, getItemDailyPrice, getItemUsageDays } from '@/lib/utils/item-utils';
-import { format, parseISO } from 'date-fns';
-import { useTags } from '@/lib/hooks/use-tags';
-import { TagBadge } from './tag-badge';
+import { useState, useEffect } from "react";
+import type { Item, Tag } from "@/lib/types";
+import {
+  centsToYuan,
+  getItemDailyPrice,
+  getItemUsageDays,
+} from "@/lib/utils/item-utils";
+import { format, parseISO } from "date-fns";
+import { useTags } from "@/lib/hooks/use-tags";
+import { TagBadge } from "./tag-badge";
 
 interface ItemDetailProps {
   item: Item;
@@ -42,15 +46,16 @@ export function ItemDetail({
         const itemTags = await tagsApi.getItemTags(item.id);
         setTags(itemTags);
       } catch (error) {
-        console.error('加载物品标签失败:', error);
+        console.error("加载物品标签失败:", error);
       }
     };
     loadTags();
-  }, [item.id, tagsApi]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id]);
 
   const formatDate = (dateStr: string) => {
     try {
-      return format(parseISO(dateStr), 'yyyy年MM月dd日');
+      return format(parseISO(dateStr), "yyyy年MM月dd日");
     } catch {
       return dateStr;
     }
@@ -94,8 +99,18 @@ export function ItemDetail({
               onClick={onClose}
               className="ml-4 text-[#787774] hover:text-[#37352F] dark:text-[#9B9A97] dark:hover:text-[#E6E6E6] transition-colors p-1 hover:bg-[#F1F1EF] dark:hover:bg-[#373737] rounded"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -105,32 +120,42 @@ export function ItemDetail({
         <div className="p-6 space-y-6">
           {/* 基本信息 */}
           <div className="space-y-4">
-            <h3 className="text-base font-semibold text-[#37352F] dark:text-[#E6E6E6]">基本信息</h3>
-            
+            <h3 className="text-base font-semibold text-[#37352F] dark:text-[#E6E6E6]">
+              基本信息
+            </h3>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-[#787774] dark:text-[#9B9A97] mb-1.5">购买日期</p>
+                <p className="text-sm text-[#787774] dark:text-[#9B9A97] mb-1.5">
+                  购买日期
+                </p>
                 <p className="text-sm font-medium text-[#37352F] dark:text-[#E6E6E6]">
                   {formatDate(item.purchased_at)}
                 </p>
               </div>
 
               <div>
-                <p className="text-sm text-[#787774] dark:text-[#9B9A97] mb-1.5">购买价格</p>
+                <p className="text-sm text-[#787774] dark:text-[#9B9A97] mb-1.5">
+                  购买价格
+                </p>
                 <p className="text-sm font-medium text-[#37352F] dark:text-[#E6E6E6]">
                   ¥{centsToYuan(item.price_cents)}
                 </p>
               </div>
 
               <div>
-                <p className="text-sm text-[#787774] dark:text-[#9B9A97] mb-1.5">使用天数</p>
+                <p className="text-sm text-[#787774] dark:text-[#9B9A97] mb-1.5">
+                  使用天数
+                </p>
                 <p className="text-sm font-medium text-[#37352F] dark:text-[#E6E6E6]">
-                  {usageDays} 天{isArchived && ' (归档时)'}
+                  {usageDays} 天{isArchived && " (归档时)"}
                 </p>
               </div>
 
               <div>
-                <p className="text-sm text-[#787774] dark:text-[#9B9A97] mb-1.5">日均成本</p>
+                <p className="text-sm text-[#787774] dark:text-[#9B9A97] mb-1.5">
+                  日均成本
+                </p>
                 <p className="text-sm font-medium text-[#2383E2] dark:text-[#529CCA]">
                   ¥{centsToYuan(dailyPriceCents)} / 天
                 </p>
@@ -138,7 +163,9 @@ export function ItemDetail({
 
               {isArchived && item.archived_at && (
                 <div className="col-span-2">
-                  <p className="text-sm text-[#787774] dark:text-[#9B9A97] mb-1.5">归档时间</p>
+                  <p className="text-sm text-[#787774] dark:text-[#9B9A97] mb-1.5">
+                    归档时间
+                  </p>
                   <p className="text-sm font-medium text-[#37352F] dark:text-[#E6E6E6]">
                     {formatDate(item.archived_at)}
                   </p>
@@ -148,7 +175,9 @@ export function ItemDetail({
 
             {item.remark && (
               <div>
-                <p className="text-sm text-[#787774] dark:text-[#9B9A97] mb-1.5">备注</p>
+                <p className="text-sm text-[#787774] dark:text-[#9B9A97] mb-1.5">
+                  备注
+                </p>
                 <p className="text-sm text-[#37352F] dark:text-[#E6E6E6] bg-[#F7F6F3] dark:bg-[#191919] rounded-md p-3 border border-[#E9E9E7] dark:border-[#3F3F3F]">
                   {item.remark}
                 </p>
@@ -157,9 +186,11 @@ export function ItemDetail({
 
             {tags.length > 0 && (
               <div>
-                <p className="text-sm text-[#787774] dark:text-[#9B9A97] mb-2">标签</p>
+                <p className="text-sm text-[#787774] dark:text-[#9B9A97] mb-2">
+                  标签
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {tags.map(tag => (
+                  {tags.map((tag) => (
                     <TagBadge key={tag.id} tag={tag} size="md" />
                   ))}
                 </div>
@@ -181,7 +212,7 @@ export function ItemDetail({
                 onClick={handleArchiveToggle}
                 className="px-4 py-2 bg-white dark:bg-[#2F2F2F] text-[#37352F] dark:text-[#E6E6E6] border border-[#E9E9E7] dark:border-[#3F3F3F] rounded-md hover:bg-[#F1F1EF] dark:hover:bg-[#373737] transition-all font-medium text-sm"
               >
-                {isArchived ? '取消归档' : '归档'}
+                {isArchived ? "取消归档" : "归档"}
               </button>
 
               <button

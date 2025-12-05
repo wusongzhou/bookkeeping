@@ -3,12 +3,12 @@
  * 用于在物品表单中选择标签
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useTags } from '@/lib/hooks/use-tags';
-import { TagBadge } from './tag-badge';
-import type { Tag } from '@/lib/types';
+import { useState, useEffect } from "react";
+import { useTags } from "@/lib/hooks/use-tags";
+import { TagBadge } from "./tag-badge";
+import type { Tag } from "@/lib/types";
 
 interface TagSelectorProps {
   selectedTagIds: number[];
@@ -20,8 +20,8 @@ export function TagSelector({ selectedTagIds, onChange }: TagSelectorProps) {
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
-  const [newTagName, setNewTagName] = useState('');
-  const [newTagColor, setNewTagColor] = useState('#3B82F6');
+  const [newTagName, setNewTagName] = useState("");
+  const [newTagColor, setNewTagColor] = useState("#3B82F6");
 
   // 加载所有标签
   useEffect(() => {
@@ -30,18 +30,19 @@ export function TagSelector({ selectedTagIds, onChange }: TagSelectorProps) {
         const tags = await tagsApi.getAllTags();
         setAllTags(tags);
       } catch (error) {
-        console.error('加载标签失败:', error);
+        console.error("加载标签失败:", error);
       } finally {
         setIsLoading(false);
       }
     };
     loadTags();
-  }, [tagsApi]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 切换标签选择状态
   const toggleTag = (tagId: number) => {
     if (selectedTagIds.includes(tagId)) {
-      onChange(selectedTagIds.filter(id => id !== tagId));
+      onChange(selectedTagIds.filter((id) => id !== tagId));
     } else {
       onChange([...selectedTagIds, tagId]);
     }
@@ -58,20 +59,26 @@ export function TagSelector({ selectedTagIds, onChange }: TagSelectorProps) {
       });
       setAllTags([...allTags, newTag]);
       onChange([...selectedTagIds, newTag.id]);
-      setNewTagName('');
-      setNewTagColor('#3B82F6');
+      setNewTagName("");
+      setNewTagColor("#3B82F6");
       setIsCreating(false);
     } catch (error) {
-      console.error('创建标签失败:', error);
-      alert('创建标签失败，请重试');
+      console.error("创建标签失败:", error);
+      alert("创建标签失败，请重试");
     }
   };
 
-  const selectedTags = allTags.filter(tag => selectedTagIds.includes(tag.id));
-  const availableTags = allTags.filter(tag => !selectedTagIds.includes(tag.id));
+  const selectedTags = allTags.filter((tag) => selectedTagIds.includes(tag.id));
+  const availableTags = allTags.filter(
+    (tag) => !selectedTagIds.includes(tag.id)
+  );
 
   if (isLoading) {
-    return <div className="text-sm text-zinc-500 dark:text-zinc-400">加载标签...</div>;
+    return (
+      <div className="text-sm text-zinc-500 dark:text-zinc-400">
+        加载标签...
+      </div>
+    );
   }
 
   return (
@@ -79,7 +86,7 @@ export function TagSelector({ selectedTagIds, onChange }: TagSelectorProps) {
       {/* 已选择的标签 */}
       {selectedTags.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {selectedTags.map(tag => (
+          {selectedTags.map((tag) => (
             <TagBadge
               key={tag.id}
               tag={tag}
@@ -97,7 +104,7 @@ export function TagSelector({ selectedTagIds, onChange }: TagSelectorProps) {
             选择标签
           </label>
           <div className="flex flex-wrap gap-2">
-            {availableTags.map(tag => (
+            {availableTags.map((tag) => (
               <button
                 key={tag.id}
                 type="button"
@@ -161,8 +168,8 @@ export function TagSelector({ selectedTagIds, onChange }: TagSelectorProps) {
               type="button"
               onClick={() => {
                 setIsCreating(false);
-                setNewTagName('');
-                setNewTagColor('#3B82F6');
+                setNewTagName("");
+                setNewTagColor("#3B82F6");
               }}
               className="px-3 py-1.5 border border-zinc-300 dark:border-zinc-700 rounded-md text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm"
             >
