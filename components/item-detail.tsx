@@ -15,32 +15,42 @@ import {
 import { format, parseISO } from "date-fns";
 import { useTags } from "@/lib/hooks/use-tags";
 import { TagBadge } from "./tag-badge";
+import { ConfirmDialog } from "./ui/confirm-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 
 interface ItemDetailProps {
-  item: Item;
+  item: Item | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onEdit: () => void;
   onArchive: () => void;
   onUnarchive: () => void;
   onDelete: () => void;
-  onClose: () => void;
 }
 
 export function ItemDetail({
   item,
+  open,
+  onOpenChange,
   onEdit,
   onArchive,
   onUnarchive,
   onDelete,
-  onClose,
 }: ItemDetailProps) {
   const tagsApi = useTags();
   const [tags, setTags] = useState<Tag[]>([]);
-  const usageDays = getItemUsageDays(item);
-  const dailyPriceCents = getItemDailyPrice(item);
-  const isArchived = item.archived === 1;
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [archiveConfirm, setArchiveConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+
+  const usageDays = item ? getItemUsageDays(item) : 0;
+  const dailyPriceCents = item ? getItemDailyPrice(item) : 0;
+  const isArchived = item?.archived === 1;
 
   // 加载物品标签
   useEffect(() => {
+    if (!item || !open) return;
     const loadTags = async () => {
       try {
         const itemTags = await tagsApi.getItemTags(item.id);
@@ -51,7 +61,7 @@ export function ItemDetail({
     };
     loadTags();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item.id]);
+  }, [item?.id, open]);
 
   const formatDate = (dateStr: string) => {
     try {
@@ -61,60 +71,51 @@ export function ItemDetail({
     }
   };
 
-  const handleDelete = () => {
-    if (confirm(`确定要删除物品「${item.name}」吗？此操作不可恢复。`)) {
-      onDelete();
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await onDelete();
+      setDeleteConfirm(false);
+      onOpenChange(false);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const handleArchiveToggle = () => {
-    if (isArchived) {
-      if (confirm(`确定要取消归档「${item.name}」吗？日均价格将重新计算。`)) {
-        onUnarchive();
+  const handleArchiveToggle = async () => {
+    setIsArchiving(true);
+    try {
+      if (isArchived) {
+        await onUnarchive();
+      } else {
+        await onArchive();
       }
-    } else {
-      if (confirm(`确定要归档「${item.name}」吗？日均价格将被锁定。`)) {
-        onArchive();
-      }
+      setArchiveConfirm(false);
+    } finally {
+      setIsArchiving(false);
     }
   };
+
+  if (!item) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-[#2F2F2F] rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[#E9E9E7] dark:border-[#3F3F3F]">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-[#2F2F2F] border-[#E9E9E7] dark:border-[#3F3F3F] p-0">
         {/* 头部 */}
-        <div className="sticky top-0 bg-white dark:bg-[#2F2F2F] border-b border-[#E9E9E7] dark:border-[#3F3F3F] p-6 z-10">
-          <div className="flex items-start justify-between">
+        <DialogHeader className="sticky top-0 bg-white dark:bg-[#2F2F2F] border-b border-[#E9E9E7] dark:border-[#3F3F3F] p-6 z-10">
+          <div className="flex items-start justify-between pr-8">
             <div className="flex-1">
-              <h2 className="text-2xl font-semibold text-[#37352F] dark:text-[#E6E6E6] mb-2">
+              <DialogTitle className="text-2xl font-semibold text-[#37352F] dark:text-[#E6E6E6] mb-2">
                 {item.name}
-              </h2>
+              </DialogTitle>
               {isArchived && (
                 <span className="inline-block px-2.5 py-1 text-xs font-medium bg-[#E9E9E7] dark:bg-[#3F3F3F] text-[#787774] dark:text-[#9B9A97] rounded">
                   已归档
                 </span>
               )}
             </div>
-            <button
-              onClick={onClose}
-              className="ml-4 text-[#787774] hover:text-[#37352F] dark:text-[#9B9A97] dark:hover:text-[#E6E6E6] transition-colors p-1 hover:bg-[#F1F1EF] dark:hover:bg-[#373737] rounded"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
           </div>
-        </div>
+        </DialogHeader>
 
         {/* 内容 */}
         <div className="p-6 space-y-6">
@@ -209,14 +210,14 @@ export function ItemDetail({
               </button>
 
               <button
-                onClick={handleArchiveToggle}
+                onClick={() => setArchiveConfirm(true)}
                 className="px-4 py-2 bg-white dark:bg-[#2F2F2F] text-[#37352F] dark:text-[#E6E6E6] border border-[#E9E9E7] dark:border-[#3F3F3F] rounded-md hover:bg-[#F1F1EF] dark:hover:bg-[#373737] transition-all font-medium text-sm"
               >
                 {isArchived ? "取消归档" : "归档"}
               </button>
 
               <button
-                onClick={handleDelete}
+                onClick={() => setDeleteConfirm(true)}
                 className="col-span-2 px-4 py-2 bg-white dark:bg-[#2F2F2F] text-red-600 dark:text-red-400 border border-[#E9E9E7] dark:border-[#3F3F3F] rounded-md hover:bg-red-50 dark:hover:bg-red-950/20 transition-all font-medium text-sm"
               >
                 删除
@@ -224,7 +225,37 @@ export function ItemDetail({
             </div>
           </div>
         </div>
-      </div>
-    </div>
+
+        {/* 删除确认弹窗 */}
+        <ConfirmDialog
+          open={deleteConfirm}
+          onOpenChange={setDeleteConfirm}
+          title="删除物品"
+          description={`确定要删除物品「${item.name}」吗？此操作不可恢复。`}
+          confirmText="删除"
+          cancelText="取消"
+          variant="danger"
+          onConfirm={handleDelete}
+          isLoading={isDeleting}
+        />
+
+        {/* 归档确认弹窗 */}
+        <ConfirmDialog
+          open={archiveConfirm}
+          onOpenChange={setArchiveConfirm}
+          title={isArchived ? "取消归档" : "归档物品"}
+          description={
+            isArchived
+              ? `确定要取消归档「${item.name}」吗？日均价格将重新计算。`
+              : `确定要归档「${item.name}」吗？日均价格将被锁定。`
+          }
+          confirmText={isArchived ? "取消归档" : "归档"}
+          cancelText="取消"
+          variant="default"
+          onConfirm={handleArchiveToggle}
+          isLoading={isArchiving}
+        />
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { useTags } from "@/lib/hooks/use-tags";
 import type { Tag } from "@/lib/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { ConfirmDialog } from "./ui/confirm-dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
@@ -25,6 +26,13 @@ export function TagManager({ open, onClose }: TagManagerProps) {
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("#3B82F6");
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    open: boolean;
+    tag: Tag | null;
+  }>({
+    open: false,
+    tag: null,
+  });
 
   // 加载所有标签
   useEffect(() => {
@@ -65,25 +73,26 @@ export function TagManager({ open, onClose }: TagManagerProps) {
   };
 
   // 删除标签
-  const handleDeleteTag = async (tagId: number) => {
-    if (
-      !confirm(
-        "确定要删除这个标签吗？删除后，所有使用该标签的物品将失去此标签。"
-      )
-    ) {
-      return;
-    }
+  const handleDeleteTag = async () => {
+    if (!deleteConfirm.tag) return;
 
+    const tagId = deleteConfirm.tag.id;
     setDeletingId(tagId);
     try {
       await tagsApi.deleteTag(tagId);
       setTags(tags.filter((t) => t.id !== tagId));
+      setDeleteConfirm({ open: false, tag: null });
     } catch (error) {
       console.error("删除标签失败:", error);
       alert("删除标签失败，请重试");
     } finally {
       setDeletingId(null);
     }
+  };
+
+  // 打开删除确认框
+  const openDeleteConfirm = (tag: Tag) => {
+    setDeleteConfirm({ open: true, tag });
   };
 
   return (
@@ -202,7 +211,7 @@ export function TagManager({ open, onClose }: TagManagerProps) {
                       </span>
                     </div>
                     <Button
-                      onClick={() => handleDeleteTag(tag.id)}
+                      onClick={() => openDeleteConfirm(tag)}
                       disabled={deletingId === tag.id}
                       variant="ghost"
                       size="sm"
@@ -232,6 +241,21 @@ export function TagManager({ open, onClose }: TagManagerProps) {
             )}
           </div>
         </div>
+
+        {/* 删除确认弹窗 */}
+        <ConfirmDialog
+          open={deleteConfirm.open}
+          onOpenChange={(open) =>
+            setDeleteConfirm({ open, tag: open ? deleteConfirm.tag : null })
+          }
+          title="删除标签"
+          description={`确定要删除标签「${deleteConfirm.tag?.name}」吗？删除后，所有使用该标签的物品将失去此标签。`}
+          confirmText="删除"
+          cancelText="取消"
+          variant="danger"
+          onConfirm={handleDeleteTag}
+          isLoading={deletingId !== null}
+        />
       </DialogContent>
     </Dialog>
   );

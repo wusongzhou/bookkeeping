@@ -173,8 +173,12 @@ export default function Home() {
       await itemsApi.deleteItem(selectedItem.id);
       removeItem(selectedItem.id);
       closeDetail();
-      // 删除后重新加载当前页
-      loadItems(filter, pagination.page);
+
+      // 删除后重新加载
+      // 如果当前页只有一个物品且不是第一页，则跳到前一页
+      const shouldGoBack = items.length === 1 && pagination.page > 1;
+      const targetPage = shouldGoBack ? pagination.page - 1 : pagination.page;
+      loadItems(filter, targetPage);
     } catch (error) {
       console.error("删除失败:", error);
       alert("删除失败，请重试");
@@ -353,16 +357,15 @@ export default function Home() {
       )}
 
       {/* 详情弹窗 */}
-      {selectedItem && (
-        <ItemDetail
-          item={selectedItem}
-          onEdit={handleEdit}
-          onArchive={handleArchive}
-          onUnarchive={handleUnarchive}
-          onDelete={handleDelete}
-          onClose={closeDetail}
-        />
-      )}
+      <ItemDetail
+        item={selectedItem}
+        open={selectedItem !== null}
+        onOpenChange={(open) => !open && closeDetail()}
+        onEdit={handleEdit}
+        onArchive={handleArchive}
+        onUnarchive={handleUnarchive}
+        onDelete={handleDelete}
+      />
 
       {/* 设置弹窗 */}
       <UserSettings
