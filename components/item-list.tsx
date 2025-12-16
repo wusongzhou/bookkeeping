@@ -17,6 +17,7 @@ interface ItemListProps {
   onItemClick: (item: Item) => void;
   onFilterChange: (filter: ItemFilter) => void;
   onPageChange: (page: number) => void;
+  onSortChange: () => void;
 }
 
 export function ItemList({
@@ -24,11 +25,13 @@ export function ItemList({
   onItemClick,
   onFilterChange,
   onPageChange,
+  onSortChange,
 }: ItemListProps) {
   // 从 store 获取当前的 filter 和分页状态
   const { filter, pagination } = useItemStore();
   const activeFilter = filter.archived;
   const searchQuery = filter.search || "";
+  const sortOrder = filter.sortOrder || "desc";
   const { page, totalPages, total } = pagination;
 
   const handleFilterChange = (archived: number | undefined) => {
@@ -94,10 +97,46 @@ export function ItemList({
               已归档
             </Button>
           </div>
-          {/* 总数显示 */}
-          <span className="text-sm text-[#787774] dark:text-[#9B9A97]">
-            共 {total} 件物品
-          </span>
+
+          <div className="flex items-center gap-3">
+            {/* 排序按钮 */}
+            <Button
+              onClick={onSortChange}
+              variant="ghost"
+              size="sm"
+              className="text-[#787774] hover:text-[#37352F] hover:bg-[#F1F1EF] dark:hover:text-[#E6E6E6] dark:hover:bg-[#373737] gap-1.5"
+              title={sortOrder === "desc" ? "最新购买在前" : "最早购买在前"}
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                {sortOrder === "desc" ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M3 4h13M3 8h9m-9 4h6m4 0l4 4m0 0l4-4m-4 4V4"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"
+                  />
+                )}
+              </svg>
+              {sortOrder === "desc" ? "新→旧" : "旧→新"}
+            </Button>
+
+            {/* 总数显示 */}
+            <span className="text-sm text-[#787774] dark:text-[#9B9A97]">
+              共 {total} 件物品
+            </span>
+          </div>
         </div>
       </div>
 

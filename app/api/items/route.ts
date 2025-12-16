@@ -5,7 +5,7 @@ import type { CreateItemDTO, ItemFilter } from "@/lib/types";
 
 /**
  * GET /api/items - 获取所有物品（支持分页）
- * 支持查询参数：archived (0/1), search, page, pageSize
+ * 支持查询参数：archived (0/1), search, page, pageSize, sortOrder (asc/desc)
  */
 export const GET = withAuth(async (request: NextRequest) => {
   try {
@@ -14,6 +14,7 @@ export const GET = withAuth(async (request: NextRequest) => {
     const searchParam = searchParams.get("search");
     const pageParam = searchParams.get("page");
     const pageSizeParam = searchParams.get("pageSize");
+    const sortOrderParam = searchParams.get("sortOrder");
 
     const filter: ItemFilter = {};
     if (archivedParam !== null) {
@@ -27,6 +28,9 @@ export const GET = withAuth(async (request: NextRequest) => {
     }
     if (pageSizeParam) {
       filter.pageSize = parseInt(pageSizeParam, 10);
+    }
+    if (sortOrderParam === "asc" || sortOrderParam === "desc") {
+      filter.sortOrder = sortOrderParam;
     }
 
     const result = repository.getAllItems(filter);

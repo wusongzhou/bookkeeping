@@ -104,6 +104,9 @@ export const api = {
       if (filter?.pageSize) {
         params.append("pageSize", filter.pageSize.toString());
       }
+      if (filter?.sortOrder) {
+        params.append("sortOrder", filter.sortOrder);
+      }
       const queryString = params.toString();
       const url = `/api/items${queryString ? `?${queryString}` : ""}`;
       return request<ApiResponse<PaginatedResult<Item>>>(url);

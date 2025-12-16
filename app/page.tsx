@@ -39,6 +39,7 @@ export default function Home() {
     selectedItem,
     openDetail,
     closeDetail,
+    toggleSortOrder,
   } = useItemStore();
 
   const [loading, setLoading] = useState(false);
@@ -102,6 +103,14 @@ export default function Home() {
     },
     [setPage, filter, loadItems]
   );
+
+  // 处理排序变化
+  const handleSortChange = useCallback(() => {
+    toggleSortOrder();
+    // 排序变化后重新加载，但要用新的排序方式
+    const newSortOrder = filter.sortOrder === "asc" ? "desc" : "asc";
+    loadItems({ ...filter, sortOrder: newSortOrder }, 1);
+  }, [toggleSortOrder, filter, loadItems]);
 
   // 创建或更新物品
   const handleSubmit = async (data: CreateItemDTO, tagIds: number[]) => {
@@ -316,6 +325,7 @@ export default function Home() {
           onItemClick={openDetail}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
+          onSortChange={handleSortChange}
         />
       </div>
 

@@ -41,7 +41,8 @@ export function getAllItems(filter?: ItemFilter): PaginatedResult<Item> {
   const total = countResult.total;
 
   // 获取分页数据
-  const dataSql = `SELECT * FROM items ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`;
+  const sortOrder = filter?.sortOrder === "asc" ? "ASC" : "DESC";
+  const dataSql = `SELECT * FROM items ${whereClause} ORDER BY purchased_at ${sortOrder} LIMIT ? OFFSET ?`;
   const dataStmt = db.prepare(dataSql);
   const items = dataStmt.all(...params, pageSize, offset) as Item[];
 

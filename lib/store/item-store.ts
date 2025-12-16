@@ -40,6 +40,9 @@ interface ItemStore {
   // 设置筛选条件
   setFilter: (filter: ItemFilter) => void;
 
+  // 切换排序
+  toggleSortOrder: () => void;
+
   // 设置页码
   setPage: (page: number) => void;
 
@@ -57,7 +60,7 @@ interface ItemStore {
 
 export const useItemStore = create<ItemStore>((set, get) => ({
   items: [],
-  filter: {},
+  filter: { sortOrder: "desc" as const },
   pagination: {
     page: 1,
     pageSize: 9,
@@ -98,9 +101,17 @@ export const useItemStore = create<ItemStore>((set, get) => ({
 
   setFilter: (filter: ItemFilter) =>
     set((state) => ({
-      filter,
+      filter: { ...state.filter, ...filter },
       // 切换筛选条件时重置到第一页
       pagination: { ...state.pagination, page: 1 },
+    })),
+
+  toggleSortOrder: () =>
+    set((state) => ({
+      filter: {
+        ...state.filter,
+        sortOrder: state.filter.sortOrder === "asc" ? "desc" : "asc",
+      },
     })),
 
   setPage: (page: number) =>

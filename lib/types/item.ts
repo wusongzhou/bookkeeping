@@ -84,6 +84,7 @@ export interface ItemFilter {
   search?: string; // 搜索关键词
   page?: number; // 页码（从1开始）
   pageSize?: number; // 每页数量
+  sortOrder?: "asc" | "desc"; // 排序方式（按购买时间）
 }
 
 /**
