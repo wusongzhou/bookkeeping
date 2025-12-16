@@ -19,3 +19,4 @@ export { Label } from "./label";
 export { DatePicker } from "./date-picker";
 export { Pagination, PaginationInfo } from "./pagination";
 export { ConfirmDialog } from "./confirm-dialog";
+export { Checkbox } from "./checkbox";

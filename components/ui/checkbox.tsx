@@ -1,0 +1,40 @@
+/**
+ * Checkbox 组件 - shadcn/ui
+ */
+
+"use client";
+
+import * as React from "react";
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
+import { cn } from "@/lib/utils/cn";
+
+const Checkbox = React.forwardRef<
+  React.ElementRef<typeof CheckboxPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <CheckboxPrimitive.Root
+    ref={ref}
+    className={cn(
+      "peer h-4 w-4 shrink-0 rounded border border-[#E9E9E7] dark:border-[#3F3F3F] bg-white dark:bg-[#2F2F2F] ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2383E2] dark:focus-visible:ring-[#529CCA] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-[#2383E2] dark:data-[state=checked]:bg-[#529CCA] data-[state=checked]:border-[#2383E2] dark:data-[state=checked]:border-[#529CCA] data-[state=checked]:text-white cursor-pointer transition-colors",
+      className
+    )}
+    {...props}
+  >
+    <CheckboxPrimitive.Indicator
+      className={cn("flex items-center justify-center text-current")}
+    >
+      <svg
+        className="h-3 w-3"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        strokeWidth={3}
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+      </svg>
+    </CheckboxPrimitive.Indicator>
+  </CheckboxPrimitive.Root>
+));
+Checkbox.displayName = CheckboxPrimitive.Root.displayName;
+
+export { Checkbox };
