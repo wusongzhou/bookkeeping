@@ -3,19 +3,19 @@
  * 物品成本管理系统
  */
 
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useItemStore } from '@/lib/store/item-store';
-import { useItems } from '@/lib/hooks/use-items';
-import { useTags } from '@/lib/hooks/use-tags';
-import { ItemList } from '@/components/item-list';
-import { ItemForm } from '@/components/item-form';
-import { ItemDetail } from '@/components/item-detail';
-import { LoginModal, useAuth } from '@/components/login-modal';
-import { UserSettings } from '@/components/user-settings';
-import { Button } from '@/components/ui/button';
-import type { CreateItemDTO, UpdateItemDTO } from '@/lib/types';
+import { useEffect, useState, useCallback } from "react";
+import { useItemStore } from "@/lib/store/item-store";
+import { useItems } from "@/lib/hooks/use-items";
+import { useTags } from "@/lib/hooks/use-tags";
+import { ItemList } from "@/components/item-list";
+import { ItemForm } from "@/components/item-form";
+import { ItemDetail } from "@/components/item-detail";
+import { LoginModal, useAuth } from "@/components/login-modal";
+import { UserSettings } from "@/components/user-settings";
+import { Button } from "@/components/ui/button";
+import type { CreateItemDTO, UpdateItemDTO, ItemFilter } from "@/lib/types";
 
 export default function Home() {
   const { isAuthenticated, isChecking, logout, setIsAuthenticated } = useAuth();
@@ -24,6 +24,11 @@ export default function Home() {
   const {
     items,
     setItems,
+    filter,
+    pagination,
+    setPagination,
+    setFilter,
+    setPage,
     addItem,
     updateItem,
     removeItem,
@@ -34,50 +39,79 @@ export default function Home() {
     selectedItem,
     openDetail,
     closeDetail,
-    getFilteredItems,
-    setFilter,
   } = useItemStore();
 
   const [loading, setLoading] = useState(false);
   const [editingItemTagIds, setEditingItemTagIds] = useState<number[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const filteredItems = getFilteredItems();
 
-  // 初始化：加载数据（仅在认证成功后执行）
-  useEffect(() => {
-    // 只有在认证通过且不在检查状态时才加载数据
-    if (!isAuthenticated || isChecking) {
-      return;
-    }
-
-    const loadItems = async () => {
+  // 加载数据函数
+  const loadItems = useCallback(
+    async (currentFilter: ItemFilter, page: number) => {
       setLoading(true);
       try {
-        const data = await itemsApi.getAllItems();
-        setItems(data);
+        const result = await itemsApi.getAllItems({
+          ...currentFilter,
+          page,
+          pageSize: pagination.pageSize,
+        });
+        setItems(result.items);
+        setPagination({
+          page: result.page,
+          total: result.total,
+          totalPages: result.totalPages,
+        });
       } catch (error) {
-        console.error('加载数据失败:', error);
-        // 如果是认证错误，重置认证状态
-        if (error instanceof Error && error.message.includes('认证')) {
+        console.error("加载数据失败:", error);
+        if (error instanceof Error && error.message.includes("认证")) {
           setIsAuthenticated(false);
         } else {
-          alert('加载数据失败，请重试');
+          alert("加载数据失败，请重试");
         }
       } finally {
         setLoading(false);
       }
-    };
+    },
+    [itemsApi, pagination.pageSize, setItems, setPagination, setIsAuthenticated]
+  );
 
-    loadItems();
+  // 初始化：加载数据（仅在认证成功后执行）
+  useEffect(() => {
+    if (!isAuthenticated || isChecking) {
+      return;
+    }
+    loadItems(filter, pagination.page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, isChecking]); // 依赖认证状态
+  }, [isAuthenticated, isChecking]);
+
+  // 处理筛选变化
+  const handleFilterChange = useCallback(
+    (newFilter: ItemFilter) => {
+      setFilter(newFilter);
+      // 筛选变化时从第一页开始
+      loadItems(newFilter, 1);
+    },
+    [setFilter, loadItems]
+  );
+
+  // 处理翻页
+  const handlePageChange = useCallback(
+    (page: number) => {
+      setPage(page);
+      loadItems(filter, page);
+    },
+    [setPage, filter, loadItems]
+  );
 
   // 创建或更新物品
   const handleSubmit = async (data: CreateItemDTO, tagIds: number[]) => {
     try {
       if (editingItem) {
         // 更新
-        const updated = await itemsApi.updateItem(editingItem.id, data as UpdateItemDTO);
+        const updated = await itemsApi.updateItem(
+          editingItem.id,
+          data as UpdateItemDTO
+        );
         // 更新标签
         await tagsApi.setItemTags(editingItem.id, tagIds);
         updateItem(editingItem.id, updated);
@@ -88,11 +122,12 @@ export default function Home() {
         if (tagIds.length > 0) {
           await tagsApi.setItemTags(created.id, tagIds);
         }
-        addItem(created);
+        // 创建后重新加载当前页
+        loadItems(filter, pagination.page);
       }
       closeForm();
     } catch (error) {
-      console.error('保存失败:', error);
+      console.error("保存失败:", error);
       throw error;
     }
   };
@@ -105,8 +140,8 @@ export default function Home() {
       updateItem(selectedItem.id, archived);
       closeDetail();
     } catch (error) {
-      console.error('归档失败:', error);
-      alert('归档失败，请重试');
+      console.error("归档失败:", error);
+      alert("归档失败，请重试");
     }
   };
 
@@ -118,8 +153,8 @@ export default function Home() {
       updateItem(selectedItem.id, unarchived);
       closeDetail();
     } catch (error) {
-      console.error('取消归档失败:', error);
-      alert('取消归档失败，请重试');
+      console.error("取消归档失败:", error);
+      alert("取消归档失败，请重试");
     }
   };
 
@@ -130,9 +165,11 @@ export default function Home() {
       await itemsApi.deleteItem(selectedItem.id);
       removeItem(selectedItem.id);
       closeDetail();
+      // 删除后重新加载当前页
+      loadItems(filter, pagination.page);
     } catch (error) {
-      console.error('删除失败:', error);
-      alert('删除失败，请重试');
+      console.error("删除失败:", error);
+      alert("删除失败，请重试");
     }
   };
 
@@ -142,9 +179,9 @@ export default function Home() {
       // 加载物品的标签
       try {
         const tags = await tagsApi.getItemTags(selectedItem.id);
-        setEditingItemTagIds(tags.map(t => t.id));
+        setEditingItemTagIds(tags.map((t) => t.id));
       } catch (error) {
-        console.error('加载物品标签失败:', error);
+        console.error("加载物品标签失败:", error);
         setEditingItemTagIds([]);
       }
       closeDetail();
@@ -157,7 +194,9 @@ export default function Home() {
       <div className="flex min-h-screen items-center justify-center bg-[#F7F6F3] dark:bg-[#191919]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-3 border-[#2383E2] dark:border-[#529CCA] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-[#787774] dark:text-[#9B9A97] text-base">加载中...</p>
+          <p className="text-[#787774] dark:text-[#9B9A97] text-base">
+            加载中...
+          </p>
         </div>
       </div>
     );
@@ -167,12 +206,14 @@ export default function Home() {
     return <LoginModal onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
-  if (loading) {
+  if (loading && items.length === 0) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F7F6F3] dark:bg-[#191919]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-3 border-[#2383E2] dark:border-[#529CCA] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-[#787774] dark:text-[#9B9A97] text-base">加载中...</p>
+          <p className="text-[#787774] dark:text-[#9B9A97] text-base">
+            加载中...
+          </p>
         </div>
       </div>
     );
@@ -199,9 +240,24 @@ export default function Home() {
                 size="sm"
                 className="text-[#787774] hover:bg-[#F1F1EF] dark:hover:bg-[#373737]"
               >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
                 </svg>
                 设置
               </Button>
@@ -224,8 +280,18 @@ export default function Home() {
             size="lg"
             className="bg-[#2383E2] hover:bg-[#1a73d1] dark:bg-[#529CCA] dark:hover:bg-[#4a8ab8] text-white shadow-sm"
           >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <svg
+              className="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             新建物品
           </Button>
@@ -233,9 +299,10 @@ export default function Home() {
 
         {/* 物品列表 */}
         <ItemList
-          items={filteredItems}
+          items={items}
           onItemClick={openDetail}
-          onFilterChange={setFilter}
+          onFilterChange={handleFilterChange}
+          onPageChange={handlePageChange}
         />
       </div>
 

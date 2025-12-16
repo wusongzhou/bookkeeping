@@ -1,6 +1,6 @@
 /**
  * 物品列表组件
- * 展示物品列表、筛选功能
+ * 展示物品列表、筛选功能、分页
  */
 
 "use client";
@@ -10,22 +10,26 @@ import { useItemStore } from "@/lib/store/item-store";
 import { ItemCard } from "./item-card";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import { Pagination, PaginationInfo } from "./ui/pagination";
 
 interface ItemListProps {
   items: Item[];
   onItemClick: (item: Item) => void;
   onFilterChange: (filter: ItemFilter) => void;
+  onPageChange: (page: number) => void;
 }
 
 export function ItemList({
   items,
   onItemClick,
   onFilterChange,
+  onPageChange,
 }: ItemListProps) {
-  // 从 store 获取当前的 filter 状态，保持同步
-  const { filter } = useItemStore();
+  // 从 store 获取当前的 filter 和分页状态
+  const { filter, pagination } = useItemStore();
   const activeFilter = filter.archived;
   const searchQuery = filter.search || "";
+  const { page, totalPages, total } = pagination;
 
   const handleFilterChange = (archived: number | undefined) => {
     onFilterChange({ archived, search: searchQuery || undefined });
@@ -66,28 +70,34 @@ export function ItemList({
         </div>
 
         {/* 筛选按钮组 */}
-        <div className="flex gap-2">
-          <Button
-            onClick={() => handleFilterChange(undefined)}
-            variant={activeFilter === undefined ? "default" : "outline"}
-            size="sm"
-          >
-            全部
-          </Button>
-          <Button
-            onClick={() => handleFilterChange(0)}
-            variant={activeFilter === 0 ? "default" : "outline"}
-            size="sm"
-          >
-            进行中
-          </Button>
-          <Button
-            onClick={() => handleFilterChange(1)}
-            variant={activeFilter === 1 ? "default" : "outline"}
-            size="sm"
-          >
-            已归档
-          </Button>
+        <div className="flex items-center justify-between">
+          <div className="flex gap-2">
+            <Button
+              onClick={() => handleFilterChange(undefined)}
+              variant={activeFilter === undefined ? "default" : "outline"}
+              size="sm"
+            >
+              全部
+            </Button>
+            <Button
+              onClick={() => handleFilterChange(0)}
+              variant={activeFilter === 0 ? "default" : "outline"}
+              size="sm"
+            >
+              进行中
+            </Button>
+            <Button
+              onClick={() => handleFilterChange(1)}
+              variant={activeFilter === 1 ? "default" : "outline"}
+              size="sm"
+            >
+              已归档
+            </Button>
+          </div>
+          {/* 总数显示 */}
+          <span className="text-sm text-[#787774] dark:text-[#9B9A97]">
+            共 {total} 件物品
+          </span>
         </div>
       </div>
 
@@ -98,15 +108,33 @@ export function ItemList({
           <p className="text-sm mt-2">点击上方按钮开始记录你的第一个物品</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {items.map((item) => (
-            <ItemCard
-              key={item.id}
-              item={item}
-              onClick={() => onItemClick(item)}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {items.map((item) => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                onClick={() => onItemClick(item)}
+              />
+            ))}
+          </div>
+
+          {/* 分页控件 */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6">
+              <PaginationInfo
+                currentPage={page}
+                pageSize={pagination.pageSize}
+                total={total}
+              />
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={onPageChange}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
