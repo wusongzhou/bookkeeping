@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  bookkeeping:
+    image: ccr.ccs.tencentyun.com/shidawei/bookkeeping:latest
+    
+    container_name: bookkeeping
+    ports:
+      - "9000:3000"
+    volumes:
+      # 使用 Docker 命名卷（自动处理权限）
+      - bookkeeping-data:/app/data
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
+    restart: unless-stopped
+
+# 定义命名卷
+volumes:
+  bookkeeping-data:
+
+

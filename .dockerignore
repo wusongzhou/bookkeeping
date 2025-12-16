@@ -1,0 +1,46 @@
+# 依赖
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Next.js
+.next
+out
+dist
+
+# 开发环境
+.env*.local
+.env.development
+
+# 数据库
+data
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# 其他
+README.md
+.editorconfig
+.eslintrc*

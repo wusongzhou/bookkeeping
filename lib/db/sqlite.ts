@@ -6,16 +6,35 @@ import fs from 'fs';
 const DB_DIR = path.join(process.cwd(), 'data');
 const DB_PATH = path.join(DB_DIR, 'bookkeeping.db');
 
-// 确保 data 目录存在
-if (!fs.existsSync(DB_DIR)) {
-  fs.mkdirSync(DB_DIR, { recursive: true });
-}
-
-// 创建数据库实例
+// 数据库实例
 let db: Database.Database | null = null;
+let isInitialized = false;
+
+// 初始化数据目录（仅在运行时执行，不在构建时执行）
+function initDataDir() {
+  if (isInitialized) return;
+  
+  try {
+    if (!fs.existsSync(DB_DIR)) {
+      console.log(`创建数据库目录: ${DB_DIR}`);
+      fs.mkdirSync(DB_DIR, { recursive: true });
+    }
+    // 测试目录是否可写
+    const testFile = path.join(DB_DIR, '.write_test');
+    fs.writeFileSync(testFile, 'test');
+    fs.unlinkSync(testFile);
+    console.log(`数据库目录可写: ${DB_DIR}`);
+    isInitialized = true;
+  } catch (error) {
+    console.error(`数据库目录初始化失败: ${DB_DIR}`, error);
+    throw new Error(`无法访问数据库目录 ${DB_DIR}: ${error}`);
+  }
+}
 
 export function getDatabase(): Database.Database {
   if (!db) {
+    // 仅在首次获取数据库时初始化目录
+    initDataDir();
     db = new Database(DB_PATH);
     db.pragma('journal_mode = WAL'); // 开启 WAL 模式以提高并发性能
     initializeDatabase(db);
