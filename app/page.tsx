@@ -223,25 +223,24 @@ export default function Home() {
     <div className="min-h-screen bg-[#F7F6F3] dark:bg-[#191919]">
       <div className="max-w-5xl mx-auto px-8 py-12">
         {/* 顶部标题栏 - Notion 风格 */}
-        <div className="mb-10 pb-8 border-b border-[#E9E9E7] dark:border-[#3F3F3F]">
-          <div className="flex justify-between items-start mb-4">
+        <div className="mb-8 pb-6 border-b border-[#E9E9E7] dark:border-[#3F3F3F]">
+          <div className="flex justify-between items-start">
             <div>
               <h1 className="text-4xl font-semibold text-[#37352F] dark:text-[#E6E6E6] mb-2">
-                物品成本管理
+                Bookkeeping
               </h1>
               <p className="text-[#787774] dark:text-[#9B9A97] text-sm">
-                记录每一件物品的使用成本，让花费更有意义
+                记录每一件物品，让花费更有意义
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-1">
               <Button
-                onClick={() => setSettingsOpen(true)}
-                variant="ghost"
+                onClick={() => openForm()}
                 size="sm"
-                className="text-[#787774] hover:bg-[#F1F1EF] dark:hover:bg-[#373737]"
+                className="bg-[#2383E2] hover:bg-[#1a73d1] dark:bg-[#529CCA] dark:hover:bg-[#4a8ab8] text-white shadow-sm"
               >
                 <svg
-                  className="w-4 h-4 mr-2"
+                  className="w-4 h-4 mr-1.5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -250,51 +249,65 @@ export default function Home() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                新建
+              </Button>
+
+              {/* 分隔线 */}
+              <div className="w-px h-5 bg-[#E9E9E7] dark:bg-[#3F3F3F] mx-2" />
+
+              <Button
+                onClick={() => setSettingsOpen(true)}
+                variant="ghost"
+                size="sm"
+                className="text-[#787774] hover:text-[#37352F] hover:bg-[#F1F1EF] dark:hover:text-[#E6E6E6] dark:hover:bg-[#373737] px-2"
+                title="设置"
+              >
+                <svg
+                  className="w-[18px] h-[18px]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
                     d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
                   />
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
+                    strokeWidth={1.5}
                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
-                设置
               </Button>
               <Button
                 onClick={logout}
                 variant="ghost"
                 size="sm"
-                className="text-[#787774] hover:bg-[#F1F1EF] dark:hover:bg-[#373737]"
+                className="text-[#787774] hover:text-[#37352F] hover:bg-[#F1F1EF] dark:hover:text-[#E6E6E6] dark:hover:bg-[#373737] px-2"
+                title="退出登录"
               >
-                退出登录
+                <svg
+                  className="w-[18px] h-[18px]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
               </Button>
             </div>
           </div>
-        </div>
-
-        {/* 新建按钮 - Notion 风格 */}
-        <div className="mb-6">
-          <Button
-            onClick={() => openForm()}
-            size="lg"
-            className="bg-[#2383E2] hover:bg-[#1a73d1] dark:bg-[#529CCA] dark:hover:bg-[#4a8ab8] text-white shadow-sm"
-          >
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            新建物品
-          </Button>
         </div>
 
         {/* 物品列表 */}
