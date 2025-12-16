@@ -75,7 +75,7 @@ export function TagSelector({ selectedTagIds, onChange }: TagSelectorProps) {
 
   if (isLoading) {
     return (
-      <div className="text-sm text-zinc-500 dark:text-zinc-400">
+      <div className="text-sm text-[#787774] dark:text-[#9B9A97]">
         加载标签...
       </div>
     );
@@ -100,7 +100,7 @@ export function TagSelector({ selectedTagIds, onChange }: TagSelectorProps) {
       {/* 可选标签列表 */}
       {availableTags.length > 0 && (
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+          <label className="block text-sm font-medium text-[#37352F] dark:text-[#E6E6E6] mb-2">
             选择标签
           </label>
           <div className="flex flex-wrap gap-2">
@@ -123,15 +123,15 @@ export function TagSelector({ selectedTagIds, onChange }: TagSelectorProps) {
         <button
           type="button"
           onClick={() => setIsCreating(true)}
-          className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+          className="text-sm text-[#2383E2] dark:text-[#529CCA] hover:underline"
         >
           + 创建新标签
         </button>
       ) : (
-        <div className="p-3 border border-zinc-300 dark:border-zinc-700 rounded-lg space-y-3">
+        <div className="p-3 border border-[#E9E9E7] dark:border-[#3F3F3F] rounded-lg space-y-3 bg-[#F7F6F3] dark:bg-[#191919]">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              <label className="block text-sm font-medium text-[#37352F] dark:text-[#E6E6E6] mb-1">
                 标签名称
               </label>
               <input
@@ -139,19 +139,19 @@ export function TagSelector({ selectedTagIds, onChange }: TagSelectorProps) {
                 value={newTagName}
                 onChange={(e) => setNewTagName(e.target.value)}
                 placeholder="例如：电子产品"
-                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+                className="w-full px-3 py-2 border border-[#E9E9E7] dark:border-[#3F3F3F] rounded-md bg-white dark:bg-[#2F2F2F] text-[#37352F] dark:text-[#E6E6E6] text-sm focus:outline-none focus:ring-2 focus:ring-[#2383E2] dark:focus:ring-[#529CCA]"
                 maxLength={20}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              <label className="block text-sm font-medium text-[#37352F] dark:text-[#E6E6E6] mb-1">
                 颜色
               </label>
               <input
                 type="color"
                 value={newTagColor}
                 onChange={(e) => setNewTagColor(e.target.value)}
-                className="w-full h-10 border border-zinc-300 dark:border-zinc-700 rounded-md cursor-pointer"
+                className="w-full h-10 border border-[#E9E9E7] dark:border-[#3F3F3F] rounded-md cursor-pointer"
               />
             </div>
           </div>
@@ -160,7 +160,7 @@ export function TagSelector({ selectedTagIds, onChange }: TagSelectorProps) {
               type="button"
               onClick={handleCreateTag}
               disabled={!newTagName.trim()}
-              className="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="px-3 py-1.5 bg-[#2383E2] dark:bg-[#529CCA] text-white rounded-md hover:bg-[#1a73d1] dark:hover:bg-[#4a8ab8] disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               创建
             </button>
@@ -171,7 +171,7 @@ export function TagSelector({ selectedTagIds, onChange }: TagSelectorProps) {
                 setNewTagName("");
                 setNewTagColor("#3B82F6");
               }}
-              className="px-3 py-1.5 border border-zinc-300 dark:border-zinc-700 rounded-md text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm"
+              className="px-3 py-1.5 border border-[#E9E9E7] dark:border-[#3F3F3F] rounded-md text-[#37352F] dark:text-[#E6E6E6] hover:bg-[#F1F1EF] dark:hover:bg-[#373737] text-sm"
             >
               取消
             </button>

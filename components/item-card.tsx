@@ -5,15 +5,12 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import type { Item, Tag } from "@/lib/types";
+import type { Item } from "@/lib/types";
 import {
   centsToYuan,
   getItemDailyPrice,
   getItemUsageDays,
 } from "@/lib/utils/item-utils";
-import { useTags } from "@/lib/hooks/use-tags";
-import { TagBadge } from "./tag-badge";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 
@@ -23,25 +20,9 @@ interface ItemCardProps {
 }
 
 export function ItemCard({ item, onClick }: ItemCardProps) {
-  const tagsApi = useTags();
-  const [tags, setTags] = useState<Tag[]>([]);
   const usageDays = getItemUsageDays(item);
   const dailyPriceCents = getItemDailyPrice(item);
   const isArchived = item.archived === 1;
-
-  // 加载物品标签
-  useEffect(() => {
-    const loadTags = async () => {
-      try {
-        const itemTags = await tagsApi.getItemTags(item.id);
-        setTags(itemTags);
-      } catch (error) {
-        console.error("加载物品标签失败:", error);
-      }
-    };
-    loadTags();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item.id]);
 
   return (
     <Card
@@ -90,16 +71,6 @@ export function ItemCard({ item, onClick }: ItemCardProps) {
               <p className="text-[#787774] dark:text-[#9B9A97] truncate">
                 {item.remark}
               </p>
-            </div>
-          )}
-
-          {tags.length > 0 && (
-            <div className="pt-2 border-t border-[#E9E9E7] dark:border-[#3F3F3F] mt-2">
-              <div className="flex flex-wrap gap-1">
-                {tags.map((tag) => (
-                  <TagBadge key={tag.id} tag={tag} size="sm" />
-                ))}
-              </div>
             </div>
           )}
         </div>

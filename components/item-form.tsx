@@ -12,6 +12,7 @@ import {
   centsToYuan,
   formatDateToISO,
 } from "@/lib/utils/item-utils";
+import { useTags } from "@/lib/hooks/use-tags";
 import { TagSelector } from "./tag-selector";
 import {
   Dialog,
@@ -29,40 +30,52 @@ interface ItemFormProps {
   item?: Item | null;
   onSubmit: (data: CreateItemDTO, tagIds: number[]) => Promise<void>;
   onCancel: () => void;
-  initialTagIds?: number[];
 }
 
-export function ItemForm({
-  item,
-  onSubmit,
-  onCancel,
-  initialTagIds = [],
-}: ItemFormProps) {
+export function ItemForm({ item, onSubmit, onCancel }: ItemFormProps) {
+  const tagsApi = useTags();
   const [name, setName] = useState("");
   const [purchasedAt, setPurchasedAt] = useState("");
   const [priceYuan, setPriceYuan] = useState("");
   const [remark, setRemark] = useState("");
-  const [selectedTagIds, setSelectedTagIds] = useState<number[]>(initialTagIds);
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingTags, setIsLoadingTags] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // 编辑时填充表单
+  // 编辑时填充表单和加载标签
   useEffect(() => {
     if (item) {
       setName(item.name);
       setPurchasedAt(item.purchased_at);
       setPriceYuan(centsToYuan(item.price_cents));
       setRemark(item.remark || "");
+
+      // 加载物品的标签
+      setIsLoadingTags(true);
+      tagsApi
+        .getItemTags(item.id)
+        .then((tags) => {
+          setSelectedTagIds(tags.map((t) => t.id));
+        })
+        .catch((error) => {
+          console.error("加载物品标签失败:", error);
+          setSelectedTagIds([]);
+        })
+        .finally(() => {
+          setIsLoadingTags(false);
+        });
     } else {
       // 新建时清空
       setName("");
       setPurchasedAt(formatDateToISO(new Date()));
       setPriceYuan("");
       setRemark("");
-      setSelectedTagIds(initialTagIds);
+      setSelectedTagIds([]);
     }
     setErrors({});
-  }, [item, initialTagIds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item]);
 
   // 表单验证
   const validate = (): boolean => {

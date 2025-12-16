@@ -14,6 +14,7 @@ import { ItemForm } from "@/components/item-form";
 import { ItemDetail } from "@/components/item-detail";
 import { LoginModal, useAuth } from "@/components/login-modal";
 import { UserSettings } from "@/components/user-settings";
+import { TagManager } from "@/components/tag-manager";
 import { Button } from "@/components/ui/button";
 import type { CreateItemDTO, UpdateItemDTO, ItemFilter } from "@/lib/types";
 
@@ -43,8 +44,8 @@ export default function Home() {
   } = useItemStore();
 
   const [loading, setLoading] = useState(false);
-  const [editingItemTagIds, setEditingItemTagIds] = useState<number[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [tagManagerOpen, setTagManagerOpen] = useState(false);
 
   // 加载数据函数
   const loadItems = useCallback(
@@ -117,13 +118,11 @@ export default function Home() {
     try {
       if (editingItem) {
         // 更新
-        const updated = await itemsApi.updateItem(
-          editingItem.id,
-          data as UpdateItemDTO
-        );
+        await itemsApi.updateItem(editingItem.id, data as UpdateItemDTO);
         // 更新标签
         await tagsApi.setItemTags(editingItem.id, tagIds);
-        updateItem(editingItem.id, updated);
+        // 重新加载列表以确保标签显示正确
+        loadItems(filter, pagination.page);
       } else {
         // 创建
         const created = await itemsApi.createItem(data);
@@ -183,16 +182,8 @@ export default function Home() {
   };
 
   // 编辑物品
-  const handleEdit = async () => {
+  const handleEdit = () => {
     if (selectedItem) {
-      // 加载物品的标签
-      try {
-        const tags = await tagsApi.getItemTags(selectedItem.id);
-        setEditingItemTagIds(tags.map((t) => t.id));
-      } catch (error) {
-        console.error("加载物品标签失败:", error);
-        setEditingItemTagIds([]);
-      }
       closeDetail();
       openForm(selectedItem);
     }
@@ -268,6 +259,27 @@ export default function Home() {
               <div className="w-px h-5 bg-[#E9E9E7] dark:bg-[#3F3F3F] mx-2" />
 
               <Button
+                onClick={() => setTagManagerOpen(true)}
+                variant="ghost"
+                size="sm"
+                className="text-[#787774] hover:text-[#37352F] hover:bg-[#F1F1EF] dark:hover:text-[#E6E6E6] dark:hover:bg-[#373737] px-2"
+                title="标签管理"
+              >
+                <svg
+                  className="w-[18px] h-[18px]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                  />
+                </svg>
+              </Button>
+              <Button
                 onClick={() => setSettingsOpen(true)}
                 variant="ghost"
                 size="sm"
@@ -335,10 +347,8 @@ export default function Home() {
           item={editingItem}
           onSubmit={handleSubmit}
           onCancel={() => {
-            setEditingItemTagIds([]);
             closeForm();
           }}
-          initialTagIds={editingItem ? editingItemTagIds : []}
         />
       )}
 
@@ -358,6 +368,12 @@ export default function Home() {
       <UserSettings
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
+      />
+
+      {/* 标签管理弹窗 */}
+      <TagManager
+        open={tagManagerOpen}
+        onClose={() => setTagManagerOpen(false)}
       />
     </div>
   );
