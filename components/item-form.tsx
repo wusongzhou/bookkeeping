@@ -3,16 +3,27 @@
  * 用于新建和编辑物品
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import type { Item, CreateItemDTO } from '@/lib/types';
-import { yuanToCents, centsToYuan, formatDateToISO } from '@/lib/utils/item-utils';
-import { TagSelector } from './tag-selector';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
+import { useState, useEffect } from "react";
+import type { Item, CreateItemDTO } from "@/lib/types";
+import {
+  yuanToCents,
+  centsToYuan,
+  formatDateToISO,
+} from "@/lib/utils/item-utils";
+import { TagSelector } from "./tag-selector";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "./ui/dialog";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { DatePicker } from "./ui/date-picker";
 
 interface ItemFormProps {
   item?: Item | null;
@@ -21,11 +32,16 @@ interface ItemFormProps {
   initialTagIds?: number[];
 }
 
-export function ItemForm({ item, onSubmit, onCancel, initialTagIds = [] }: ItemFormProps) {
-  const [name, setName] = useState('');
-  const [purchasedAt, setPurchasedAt] = useState('');
-  const [priceYuan, setPriceYuan] = useState('');
-  const [remark, setRemark] = useState('');
+export function ItemForm({
+  item,
+  onSubmit,
+  onCancel,
+  initialTagIds = [],
+}: ItemFormProps) {
+  const [name, setName] = useState("");
+  const [purchasedAt, setPurchasedAt] = useState("");
+  const [priceYuan, setPriceYuan] = useState("");
+  const [remark, setRemark] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>(initialTagIds);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -36,13 +52,13 @@ export function ItemForm({ item, onSubmit, onCancel, initialTagIds = [] }: ItemF
       setName(item.name);
       setPurchasedAt(item.purchased_at);
       setPriceYuan(centsToYuan(item.price_cents));
-      setRemark(item.remark || '');
+      setRemark(item.remark || "");
     } else {
       // 新建时清空
-      setName('');
+      setName("");
       setPurchasedAt(formatDateToISO(new Date()));
-      setPriceYuan('');
-      setRemark('');
+      setPriceYuan("");
+      setRemark("");
       setSelectedTagIds(initialTagIds);
     }
     setErrors({});
@@ -53,24 +69,24 @@ export function ItemForm({ item, onSubmit, onCancel, initialTagIds = [] }: ItemF
     const newErrors: Record<string, string> = {};
 
     if (!name.trim()) {
-      newErrors.name = '物品名称不能为空';
+      newErrors.name = "物品名称不能为空";
     }
 
     if (!purchasedAt) {
-      newErrors.purchasedAt = '购买日期不能为空';
+      newErrors.purchasedAt = "购买日期不能为空";
     } else {
       const date = new Date(purchasedAt);
       if (date > new Date()) {
-        newErrors.purchasedAt = '购买日期不能晚于当前日期';
+        newErrors.purchasedAt = "购买日期不能晚于当前日期";
       }
     }
 
     if (!priceYuan.trim()) {
-      newErrors.priceYuan = '购买价格不能为空';
+      newErrors.priceYuan = "购买价格不能为空";
     } else {
       const price = parseFloat(priceYuan);
       if (isNaN(price) || price < 0) {
-        newErrors.priceYuan = '请输入有效的价格';
+        newErrors.priceYuan = "请输入有效的价格";
       }
     }
 
@@ -97,8 +113,8 @@ export function ItemForm({ item, onSubmit, onCancel, initialTagIds = [] }: ItemF
 
       await onSubmit(data, selectedTagIds);
     } catch (error) {
-      console.error('提交表单失败:', error);
-      alert('操作失败，请重试');
+      console.error("提交表单失败:", error);
+      alert("操作失败，请重试");
     } finally {
       setIsSubmitting(false);
     }
@@ -109,14 +125,17 @@ export function ItemForm({ item, onSubmit, onCancel, initialTagIds = [] }: ItemF
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-white dark:bg-[#2F2F2F] border-[#E9E9E7] dark:border-[#3F3F3F]">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-[#37352F] dark:text-[#E6E6E6]">
-            {item ? '编辑物品' : '新建物品'}
+            {item ? "编辑物品" : "新建物品"}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* 物品名称 */}
           <div>
-            <Label htmlFor="name" className="text-[#37352F] dark:text-[#E6E6E6]">
+            <Label
+              htmlFor="name"
+              className="text-[#37352F] dark:text-[#E6E6E6]"
+            >
               物品名称 <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -127,27 +146,40 @@ export function ItemForm({ item, onSubmit, onCancel, initialTagIds = [] }: ItemF
               className="mt-1.5 bg-[#F7F6F3] dark:bg-[#191919] border-[#E9E9E7] dark:border-[#3F3F3F] text-[#37352F] dark:text-[#E6E6E6]"
               placeholder="例如：MacBook Pro"
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1.5">{errors.name}</p>}
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-1.5">{errors.name}</p>
+            )}
           </div>
 
           {/* 购买日期 */}
           <div>
-            <Label htmlFor="purchasedAt" className="text-[#37352F] dark:text-[#E6E6E6]">
+            <Label
+              htmlFor="purchasedAt"
+              className="text-[#37352F] dark:text-[#E6E6E6]"
+            >
               购买日期 <span className="text-red-500">*</span>
             </Label>
-            <Input
-              id="purchasedAt"
-              type="date"
-              value={purchasedAt}
-              onChange={(e) => setPurchasedAt(e.target.value)}
-              className="mt-1.5 bg-[#F7F6F3] dark:bg-[#191919] border-[#E9E9E7] dark:border-[#3F3F3F] text-[#37352F] dark:text-[#E6E6E6]"
-            />
-            {errors.purchasedAt && <p className="text-red-500 text-sm mt-1.5">{errors.purchasedAt}</p>}
+            <div className="mt-1.5">
+              <DatePicker
+                value={purchasedAt}
+                onChange={setPurchasedAt}
+                maxDate={new Date()}
+                placeholder="选择购买日期"
+              />
+            </div>
+            {errors.purchasedAt && (
+              <p className="text-red-500 text-sm mt-1.5">
+                {errors.purchasedAt}
+              </p>
+            )}
           </div>
 
           {/* 购买价格 */}
           <div>
-            <Label htmlFor="priceYuan" className="text-[#37352F] dark:text-[#E6E6E6]">
+            <Label
+              htmlFor="priceYuan"
+              className="text-[#37352F] dark:text-[#E6E6E6]"
+            >
               购买价格（元）<span className="text-red-500">*</span>
             </Label>
             <Input
@@ -160,12 +192,17 @@ export function ItemForm({ item, onSubmit, onCancel, initialTagIds = [] }: ItemF
               className="mt-1.5 bg-[#F7F6F3] dark:bg-[#191919] border-[#E9E9E7] dark:border-[#3F3F3F] text-[#37352F] dark:text-[#E6E6E6]"
               placeholder="例如：1200.00"
             />
-            {errors.priceYuan && <p className="text-red-500 text-sm mt-1.5">{errors.priceYuan}</p>}
+            {errors.priceYuan && (
+              <p className="text-red-500 text-sm mt-1.5">{errors.priceYuan}</p>
+            )}
           </div>
 
           {/* 备注 */}
           <div>
-            <Label htmlFor="remark" className="text-[#37352F] dark:text-[#E6E6E6]">
+            <Label
+              htmlFor="remark"
+              className="text-[#37352F] dark:text-[#E6E6E6]"
+            >
               备注（可选）
             </Label>
             <textarea
@@ -205,7 +242,7 @@ export function ItemForm({ item, onSubmit, onCancel, initialTagIds = [] }: ItemF
               disabled={isSubmitting}
               className="flex-1 bg-[#2383E2] hover:bg-[#1a73d1] dark:bg-[#529CCA] dark:hover:bg-[#4a8ab8]"
             >
-              {isSubmitting ? '提交中...' : item ? '保存' : '创建'}
+              {isSubmitting ? "提交中..." : item ? "保存" : "创建"}
             </Button>
           </DialogFooter>
         </form>
